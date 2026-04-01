@@ -12,9 +12,9 @@ from src.core.recommender import MusicRecommender
 load_dotenv()
 
 VIBE_QUESTIONS = [
-    "How are you feeling right now in one or two words?",
-    "What are you about to do? (e.g. studying, working out, driving, chilling)",
-    "Pick a vibe: upbeat & energetic, mellow & reflective, or somewhere in between?",
+    "How was your day?",
+    "What is your current energy level (1-10)?",
+    "What genre are you craving?",
 ]
 
 
@@ -39,11 +39,17 @@ class MoodSeekerAgent:
 
     def build_profile(self, answers: list[str]) -> UserProfile:
         prompt = (
-            "You are a music taste analyst. Based on these answers, return a JSON "
-            "object with keys: preferred_genres (list of strings from: pop, rock, "
-            "hip-hop, electronic, classical, r&b, indie, ambient), mood (one of: "
-            "happy, melancholy, calm, energetic, motivated, chill), energy_level "
-            "(float 0-1), and context (short string).\n\n"
+            "You are a music taste analyst. Based on the user's interview answers, "
+            "return a JSON object with these keys:\n"
+            "- preferred_genres: list of strings from [pop, rock, hip-hop, electronic, "
+            "classical, r&b, indie, ambient]. Use the genre they mentioned plus any "
+            "closely related genres.\n"
+            "- mood: one of [happy, melancholy, calm, energetic, motivated, chill]. "
+            "Infer from how their day went.\n"
+            "- energy_level: float 0.0-1.0. Convert their 1-10 rating by dividing "
+            "by 10.\n"
+            "- context: a short string summarising their current situation based on "
+            "their answers.\n\n"
             f"Q1: {VIBE_QUESTIONS[0]}\nA1: {answers[0]}\n"
             f"Q2: {VIBE_QUESTIONS[1]}\nA2: {answers[1]}\n"
             f"Q3: {VIBE_QUESTIONS[2]}\nA3: {answers[2]}\n\n"
