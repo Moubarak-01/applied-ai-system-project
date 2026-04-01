@@ -37,9 +37,11 @@ Run the reliability tests:
 python -m tests.test_agent_reliability
 ```
 
-## Sample Interaction
+## Sample Interactions
 
-Below is a sample run from the **Exhausted Office Worker** test persona:
+Below are sample runs from all three test personas:
+
+### Exhausted Office Worker
 
 ```text
 ============================================================
@@ -47,7 +49,7 @@ Below is a sample run from the **Exhausted Office Worker** test persona:
 ============================================================
   Answers: ['Terrible. Back-to-back meetings and I just want to zone out.', '2', 'ambient']
   Extracted: mood=melancholy, energy=0.2, genres=['ambient', 'electronic', 'classical'],
-             context=User had a terrible day filled with meetings and wants to relax.
+             context=User had a terrible day with back-to-back meetings and wants to zone out.
 
   Top 5 recommendations:
     1. Nuvole Bianche by Ludovico Einaudi (score=1.0)
@@ -56,13 +58,54 @@ Below is a sample run from the **Exhausted Office Worker** test persona:
     4. Breathe Me by Sia (score=0.6)
     5. The Night We Met by Lord Huron (score=0.587)
 
-  Self-Critique Confidence: 5/5
-  Reasoning: The recommendations are an excellent fit. The system correctly
-  identified the user's low energy and melancholy mood, prioritizing ambient
-  and classical music that aligns with the user's desire to relax.
+  Self-Critique Confidence: 4/5
 ```
 
 The LLM correctly interpreted "Terrible. Back-to-back meetings" as low energy and a melancholy mood. The core engine then surfaced calming ambient and classical tracks, exactly what this persona needed.
+
+### Hyped Gym-goer
+
+```text
+============================================================
+  Persona: Hyped Gym-goer
+============================================================
+  Answers: ['Amazing! Just crushed a personal record at the gym.', '9', 'hip-hop']
+  Extracted: mood=happy, energy=0.9, genres=['hip-hop', 'r&b', 'pop'],
+             context=Just finished a great workout and feeling energetic.
+
+  Top 5 recommendations:
+    1. Blinding Lights by The Weeknd (score=0.975)
+    2. Sicko Mode by Travis Scott (score=0.65)
+    3. Lose Yourself by Eminem (score=0.638)
+    4. Don't Stop Me Now by Queen (score=0.6)
+    5. Money Trees by Kendrick Lamar (score=0.6)
+
+  Self-Critique Confidence: 4/5
+```
+
+The LLM mapped "crushed a personal record" to `mood=happy` and `energy=0.9`. The recommender returned high-energy hip-hop tracks alongside strong mood matches from other genres like pop and rock.
+
+### Melancholic Student
+
+```text
+============================================================
+  Persona: Melancholic Student
+============================================================
+  Answers: ['Pretty rough. Failed an exam and feeling down about it.', '3', 'indie']
+  Extracted: mood=melancholy, energy=0.3, genres=['indie', 'ambient'],
+             context=Feeling down after failing an exam and looking for indie music.
+
+  Top 5 recommendations:
+    1. The Night We Met by Lord Huron (score=0.988)
+    2. Someone Like You by Adele (score=0.6)
+    3. Weightless by Marconi Union (score=0.6)
+    4. Nuvole Bianche by Ludovico Einaudi (score=0.575)
+    5. Breathe Me by Sia (score=0.575)
+
+  Self-Critique Confidence: 4/5
+```
+
+The LLM understood "failed an exam and feeling down" as melancholy with low energy. The top result, "The Night We Met" by Lord Huron, is a near-perfect match at 0.988 for indie genre, melancholy mood, and low energy.
 
 ## System Architecture
 
