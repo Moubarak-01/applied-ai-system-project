@@ -96,9 +96,10 @@ class MoodSeekerAgent:
             f"mood={profile.mood}, energy={profile.energy_level}, "
             f"context={profile.context}, genres={profile.preferred_genres}.\n\n"
             f"Recommended songs:\n{songs_text}\n\n"
-            "Return a JSON array of objects with keys: title, keep (bool), "
-            "reasoning (string). Set keep=false for songs that don't match "
-            "the user's actual vibe. Return ONLY valid JSON, no markdown."
+            "Return a JSON array of objects with keys: title (must match exactly "
+            "as shown above), keep (bool), reasoning (string). Only set "
+            "keep=false for songs that are a genuinely bad fit. When in doubt, "
+            "keep the song. Return ONLY valid JSON, no markdown."
         )
 
         response = self.model.generate_content(
@@ -107,13 +108,16 @@ class MoodSeekerAgent:
         )
 
         verdicts = json.loads(_strip_markdown_fences(response.text))
-        verdict_map = {v["title"]: v for v in verdicts}
+        # Normalize titles for lookup (handles curly quotes, extra spaces, etc.)
+        verdict_map = {v["title"].strip().lower(): v for v in verdicts}
 
         filtered: list[Recommendation] = []
         for rec in recommendations:
-            verdict = verdict_map.get(rec.song.title)
-            if verdict and verdict.get("keep", True):
-                rec.reasoning = verdict.get("reasoning", rec.reasoning)
+            verdict = verdict_map.get(rec.song.title.strip().lower())
+            # Default to keeping the song if the LLM didn't mention it
+            if verdict is None or verdict.get("keep", True):
+                if verdict:
+                    rec.reasoning = verdict.get("reasoning", rec.reasoning)
                 filtered.append(rec)
 
         return filtered

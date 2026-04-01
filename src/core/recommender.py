@@ -1,9 +1,19 @@
 from __future__ import annotations
 
 import csv
+import re
 from pathlib import Path
 
 from src.core.models import Recommendation, Song, UserProfile
+
+
+def _normalize_genre(genre: str) -> str:
+    """Normalize a genre string for fuzzy comparison.
+
+    Lowercases, strips whitespace, and removes hyphens/spaces so that
+    'Hip-Hop', 'hip hop', 'hiphop', and 'Hip Hop' all become 'hiphop'.
+    """
+    return re.sub(r"[\s\-]+", "", genre.strip().lower())
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 
@@ -86,8 +96,9 @@ class MusicRecommender:
     def _score(self, song: Song, profile: UserProfile) -> float:
         score = 0.0
 
-        # Genre match
-        if song.genre.lower() in [g.lower() for g in profile.preferred_genres]:
+        # Genre match (fuzzy: ignores case, hyphens, spaces)
+        song_genre = _normalize_genre(song.genre)
+        if song_genre in [_normalize_genre(g) for g in profile.preferred_genres]:
             score += 0.4
 
         # Mood match
@@ -102,7 +113,8 @@ class MusicRecommender:
 
     def _explain(self, song: Song, profile: UserProfile) -> str:
         reasons: list[str] = []
-        if song.genre.lower() in [g.lower() for g in profile.preferred_genres]:
+        song_genre = _normalize_genre(song.genre)
+        if song_genre in [_normalize_genre(g) for g in profile.preferred_genres]:
             reasons.append(f"genre match ({song.genre})")
         if song.mood.lower() == profile.mood.lower():
             reasons.append(f"mood match ({song.mood})")

@@ -145,8 +145,21 @@ applied-ai-system-project/
 └── assets/                            # Architecture diagrams
 ```
 
+## Design Decisions
+
+- **Fuzzy Genre Matching.** Genre comparisons strip hyphens, spaces, and case before matching. This means "hip hop", "Hip-Hop", and "hiphop" all match "hip-hop" in the catalog. Without this, the LLM returning "hip hop" (no hyphen) would silently produce zero genre-matched recommendations.
+- **Weighted Scoring (40/35/25).** Genre carries the most weight (40%), followed by mood (35%), then energy proximity (25%). This ensures users get songs in their requested genre first, while still surfacing strong mood/energy fits from adjacent genres.
+- **LLM as Normalizer, Not Scorer.** The LLM translates natural language into structured data, but the actual scoring is pure math with no LLM in the loop. This keeps recommendations deterministic and fast.
+- **Self-Critique as a Guardrail.** After scoring, a second LLM call reviews the results and filters out songs that don't actually fit the user's vibe. This catches edge cases the math-based scorer misses.
+
 ## System Reflection
 
 Using an LLM as a "normalizer" between the user and the recommendation engine is what makes this system robust. A traditional keyword-matching approach would struggle with input like "Amazing! Just crushed a personal record at the gym" because there is no explicit mention of energy or mood. But the LLM understands the intent behind the words, correctly mapping that statement to `mood=happy` and `energy=0.9`. This translation layer means users can speak naturally without worrying about matching the system's internal schema, and the core engine still receives clean, structured data to score against. It turns a rigid filtering problem into a conversational experience.
 
 The 4/5 confidence scores reveal an interesting trade-off between vibe accuracy and genre strictness. For example, the Gym-goer persona asked specifically for hip-hop, but the system also recommended "Blinding Lights" (pop) and "Don't Stop Me Now" (rock) because they matched the user's high energy and happy mood almost perfectly. The self-critique acknowledged these as strong fits despite the genre mismatch. Arguably, a user who just crushed a PR would enjoy those tracks regardless. This shows that the system prioritizes overall vibe over rigid genre filtering, which is a deliberate design choice: mood and energy matter more than labels. A future improvement could let users specify how strictly they want genre enforced, giving them control over this balance.
+
+This project demonstrates my ability to build agentic AI systems that bridge the gap between natural language and structured data. By implementing a self-critique loop and a rigorous test harness, I've created a recommender that is not only functional but measurably reliable.
+
+## Project Demo
+
+[Watch the full demo on Loom](https://www.loom.com/share/50c24368995847fc91bf70cbe25b74cf)
