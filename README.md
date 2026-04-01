@@ -6,6 +6,64 @@ My system follows a **Modular Agentic Pattern**:
 - **The Core (`src/core/`):** A high-performance recommendation engine that handles the math and data filtering.
 - **The RAG Layer (`src/rag/`):** (Placeholder) Designed to eventually retrieve song lyrics to improve mood matching.
 
+## Setup
+
+```bash
+pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` and add your Gemini API key:
+
+```bash
+cp .env.example .env
+# Then edit .env and set: GEMINI_API_KEY=your_key_here
+```
+
+Run the basic recommender (no API key needed):
+
+```bash
+python -m src.main
+```
+
+Run the agentic Mood-Seeker (requires `GEMINI_API_KEY`):
+
+```bash
+python -m src.main agent
+```
+
+Run the reliability tests:
+
+```bash
+python -m tests.test_agent_reliability
+```
+
+## Sample Interaction
+
+Below is a sample run from the **Exhausted Office Worker** test persona:
+
+```text
+============================================================
+  Persona: Exhausted Office Worker
+============================================================
+  Answers: ['Terrible. Back-to-back meetings and I just want to zone out.', '2', 'ambient']
+  Extracted: mood=melancholy, energy=0.2, genres=['ambient', 'electronic', 'classical'],
+             context=User had a terrible day filled with meetings and wants to relax.
+
+  Top 5 recommendations:
+    1. Nuvole Bianche by Ludovico Einaudi (score=1.0)
+    2. Clair de Lune by Debussy (score=0.637)
+    3. Weightless by Marconi Union (score=0.625)
+    4. Breathe Me by Sia (score=0.6)
+    5. The Night We Met by Lord Huron (score=0.587)
+
+  Self-Critique Confidence: 5/5
+  Reasoning: The recommendations are an excellent fit. The system correctly
+  identified the user's low energy and melancholy mood, prioritizing ambient
+  and classical music that aligns with the user's desire to relax.
+```
+
+The LLM correctly interpreted "Terrible. Back-to-back meetings" as low energy and a melancholy mood, then the core engine surfaced calming ambient and classical tracks — exactly what this persona needed.
+
 ## System Architecture
 
 ```mermaid
