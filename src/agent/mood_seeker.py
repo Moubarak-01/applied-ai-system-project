@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import json
 import os
+import re
 
 from dotenv import load_dotenv
-from openai import OpenAI
+import google.generativeai as genai
 
 from src.core.models import Recommendation, UserProfile
 from src.core.recommender import MusicRecommender
 
 load_dotenv()
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 VIBE_QUESTIONS = [
     "How was your day?",
@@ -18,11 +21,16 @@ VIBE_QUESTIONS = [
 ]
 
 
+def _strip_markdown_fences(text: str) -> str:
+    """Remove ```json ... ``` wrappers that Gemini sometimes adds."""
+    return re.sub(r"^```(?:json)?\s*\n?|```\s*$", "", text.strip(), flags=re.MULTILINE).strip()
+
+
 class MoodSeekerAgent:
     """Agentic loop: interview -> build profile -> recommend -> critique."""
 
     def __init__(self) -> None:
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.model = genai.GenerativeModel("gemini-2.0-flash")
         self.recommender = MusicRecommender()
 
     # -- Step 1: Interview --------------------------------------------------
@@ -56,13 +64,12 @@ class MoodSeekerAgent:
             "Return ONLY valid JSON, no markdown."
         )
 
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
+        response = self.model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(temperature=0.3),
         )
 
-        data = json.loads(response.choices[0].message.content)
+        data = json.loads(_strip_markdown_fences(response.text))
         return UserProfile(
             preferred_genres=data.get("preferred_genres", []),
             mood=data.get("mood", ""),
@@ -94,13 +101,12 @@ class MoodSeekerAgent:
             "the user's actual vibe. Return ONLY valid JSON, no markdown."
         )
 
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
+        response = self.model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(temperature=0.3),
         )
 
-        verdicts = json.loads(response.choices[0].message.content)
+        verdicts = json.loads(_strip_markdown_fences(response.text))
         verdict_map = {v["title"]: v for v in verdicts}
 
         filtered: list[Recommendation] = []
@@ -131,6 +137,9 @@ class MoodSeekerAgent:
         print(f"\n--- Your {len(final)} Mood-Matched Songs ---\n")
         for i, rec in enumerate(final, 1):
             print(f"  {i}. {rec.song.title} by {rec.song.artist}")
-            print(f"     {rec.reasoning}\n")
+            print(f"     {rec.reasoning}")
+            if rec.fun_fact:
+                print(f"     Fun Fact: {rec.fun_fact}")
+            print()
 
         return final

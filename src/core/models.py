@@ -26,3 +26,4 @@ class Recommendation:
     song: Song
     score: float  # 0.0 to 1.0 relevance score
     reasoning: str = ""
+    fun_fact: str = ""

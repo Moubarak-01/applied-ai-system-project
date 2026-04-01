@@ -14,9 +14,10 @@ venv/
 data/processed/*
 !data/processed/.gitkeep
 
-# IDE
+# IDE / tooling
 .vscode/
 .idea/
+.claude/
 
 # OS
 .DS_Store

@@ -24,7 +24,10 @@ def run_basic() -> None:
     for i, rec in enumerate(results, 1):
         print(f"  {i}. {rec.song.title} by {rec.song.artist} "
               f"(score: {rec.score})")
-        print(f"     {rec.reasoning}\n")
+        print(f"     {rec.reasoning}")
+        if rec.fun_fact:
+            print(f"     Fun Fact: {rec.fun_fact}")
+        print()
 
 
 def run_agent() -> None:
